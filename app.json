@@ -32,7 +32,8 @@
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT"
-      ]
+      ],
+      "package": "com.almeida.jr.bleappbuilder"
     },
     "web": {
       "bundler": "metro",

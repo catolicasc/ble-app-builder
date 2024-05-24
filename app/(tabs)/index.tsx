@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, Button, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
-import * as Permissions from 'expo-permissions';
 
 const manager = new BleManager();
-
+const serviceUUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
+const characteristicUUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 const App = () => {
     const [devices, setDevices] = useState([]);
     const [connectedDevice, setConnectedDevice] = useState(null);
     const [services, setServices] = useState([]);
     const [characteristics, setCharacteristics] = useState([]);
-    const [selectedServiceUUID, setSelectedServiceUUID] = useState('');
-    const [selectedCharacteristicUUID, setSelectedCharacteristicUUID] = useState('');
-    const [message, setMessage] = useState('');
+    const [selectedServiceUUID, setSelectedServiceUUID] = useState(characteristicUUID);
+    const [selectedCharacteristicUUID, setSelectedCharacteristicUUID] = useState(serviceUUID);
+    const [message, setMessage] = useState();
 
     useEffect(() => {
         requestPermissions();
@@ -23,11 +23,11 @@ const App = () => {
     }, []);
 
     const requestPermissions = async () => {
-        const { status: bluetoothStatus } = await Permissions.askAsync(Permissions.BLUETOOTH_PERIPHERAL);
-        const { status: locationStatus } = await Permissions.askAsync(Permissions.LOCATION_WHEN_IN_USE);
-        if (bluetoothStatus !== 'granted' || locationStatus !== 'granted') {
-            Alert.alert('Permission Required', 'Bluetooth and Location permissions are required to use Bluetooth');
-        }
+        // const { status: bluetoothStatus } = await Permissions.askAsync(Permissions.BLUETOOTH_PERIPHERAL);
+        // const { status: locationStatus } = await Permissions.askAsync(Permissions.LOCATION_WHEN_IN_USE);
+        // if (bluetoothStatus !== 'granted' || locationStatus !== 'granted') {
+        //     Alert.alert('Permission Required', 'Bluetooth and Location permissions are required to use Bluetooth');
+        // }
     };
 
     const scanForDevices = () => {
@@ -72,6 +72,7 @@ const App = () => {
             const service = services.find(s => s.uuid === serviceUUID);
             if (service) {
                 const characteristics = await service.characteristics();
+                console.log(JSON.stringify(characteristics))
                 const writableCharacteristics = characteristics.filter(c => c.isWritableWithResponse || c.isWritableWithoutResponse);
                 setCharacteristics(writableCharacteristics);
             } else {
@@ -96,7 +97,8 @@ const App = () => {
         console.log(`Encoded message (base64): ${messageBase64}`);
 
         try {
-            await connectedDevice.writeCharacteristicWithResponseForService(selectedServiceUUID, selectedCharacteristicUUID, messageBase64);
+            console.log(connectedDevice)
+            await manager.writeCharacteristicWithoutResponseForDevice(connectedDevice?.id, selectedServiceUUID, selectedCharacteristicUUID, messageBase64);
             console.log('Message Sent:', message);
             Alert.alert('Message Sent', 'The message was sent successfully.');
         } catch (error) {
@@ -139,7 +141,10 @@ const App = () => {
             />
             {connectedDevice && (
                 <View style={styles.connectedDevice}>
-                    <Text>Connected to {connectedDevice.name || connectedDevice.id}</Text>
+                    <Text style={{
+                        padding:  10,
+                        backgroundColor: 'lightgrey',
+                    }}>Connected to {connectedDevice.name} Service: {selectedServiceUUID} Characteristic: {selectedCharacteristicUUID}</Text>
                     <FlatList
                         data={services}
                         keyExtractor={item => item.uuid}
@@ -165,16 +170,19 @@ const App = () => {
                             </TouchableOpacity>
                         )}
                     />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter message"
-                        value={message}
-                        onChangeText={setMessage}
-                    />
-                    <Button title="Send Message" onPress={sendMessage} />
-                    <Button title="Disconnect" onPress={disconnectFromDevice} />
+
                 </View>
             )}
+            <>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter message"
+                    value={message}
+                    onChangeText={setMessage}
+                />
+                <Button title="Send Message" onPress={sendMessage} />
+                <Button title="Disconnect" onPress={disconnectFromDevice} />
+            </>
         </SafeAreaView>
     );
 };
@@ -203,6 +211,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         padding: 10,
         marginBottom: 10,
+        backgroundColor: 'lightgrey',
     },
 });
 
