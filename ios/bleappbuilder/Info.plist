@@ -43,12 +43,14 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to connect to bluetooth devices</string>
+    <string>We use Bluetooth to connect to devices.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>We use Bluetooth to connect to devices</string>
+    <string>We use Bluetooth to connect to devices.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>We need your location to access Bluetooth devices</string>
+    <string>We use location to scan for Bluetooth devices.</string>
+
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
